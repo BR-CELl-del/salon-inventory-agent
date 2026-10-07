@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Salon Inventory Trial</title>
+    <style>
+      :root {
+        --bg: #fffaf6;
+        --card: #ffffff;
+        --primary: #d9776d;
+        --secondary: #f5d4c8;
+        --text: #2d2a2a;
+        --muted: #6b6767;
+        --good: #3ca77a;
+        --warn: #d9892d;
+        --danger: #c24a45;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(180deg, #fffaf6 0%, #fff3ed 100%);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .brand {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .tag {
+        background: var(--secondary);
+        color: var(--text);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      }
+
+      .card h3 {
+        margin-top: 0;
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
+
+      .stat {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .section {
+        margin-top: 28px;
+      }
+
+      .panel {
+        background: var(--card);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.04);
+      }
+
+      form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-top: 14px;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        font-size: 14px;
+        color: var(--muted);
+        gap: 6px;
+      }
+
+      input, select, button {
+        border-radius: 10px;
+        border: 1px solid #e8d9d1;
+        padding: 10px 12px;
+        font-size: 14px;
+      }
+
+      input, select {
+        background: #fff;
+      }
+
+      button {
+        background: var(--primary);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: 700;
+        transition: 0.2s ease;
+      }
+
+      button:hover {
+        filter: brightness(0.98);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+      }
+
+      th, td {
+        border-bottom: 1px solid #f0e5df;
+        padding: 12px 10px;
+        text-align: left;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .status {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .status.good { background: #dff5e9; color: var(--good); }
+      .status.warn { background: #fef2dc; color: var(--warn); }
+      .status.danger { background: #f9e1df; color: var(--danger); }
+
+      .insight {
+        margin-top: 16px;
+        background: #fff7f3;
+        border: 1px solid #f7ddd1;
+        border-radius: 12px;
+        padding: 16px;
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      @media (max-width: 600px) {
+        .topbar {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="topbar">
+        <div class="brand">Luna Salon</div>
+        <div class="tag">Inventory AI Trial</div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Booked this week</h3>
+          <div id="bookedCount" class="stat">0</div>
+          <div class="muted">Appointments across all services</div>
+        </div>
+
+        <div class="card">
+          <h3>Low stock alerts</h3>
+          <div id="lowStockCount" class="stat">0</div>
+          <div class="muted">Products below minimum level</div>
+        </div>
+
+        <div class="card">
+          <h3>Estimated demand</h3>
+          <div id="demandValue" class="stat">0</div>
+          <div class="muted">Projected product use this week</div>
+        </div>
+      </div>
+
+      <div class="section panel">
+        <h3>Try a booking</h3>
+        <form id="bookingForm">
+          <label>
+            Service
+            <select id="serviceType" required>
+              <option value="Haircut">Haircut</option>
+              <option value="Colour" selected>Colour</option>
+              <option value="Facial">Facial</option>
+              <option value="Manicure">Manicure</option>
+              <option value="Massage">Massage</option>
+            </select>
+          </label>
+
+          <label>
+            Quantity
+            <input id="serviceQty" type="number" min="1" value="1" required />
+          </label>
+
+          <label>
+            Product usage estimate
+            <input id="usageInput" type="text" value="Colour estimate: toner, developer" />
+          </label>
+
+          <button type="submit">Add booking</button>
+        </form>
+      </div>
+
+      <div class="section panel">
+        <h3>Service usage and stock</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Stock</th>
+                <th>Min</th>
+                <th>Usage est./service</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="stockTableBody"></tbody>
+          </table>
+        </div>
+
+        <div id="insightBox" class="insight">
+          AI suggestion: Based on current bookings, toner is the first product likely to run low this week.
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const products = [
+        { name: 'Shampoo', stock: 18, min: 10, usagePerService: { Haircut: 0.6, Colour: 0.4, Facial: 0.2, Manicure: 0.1, Massage: 0.3 } },
+        { name: 'Toner', stock: 8, min: 10, usagePerService: { Haircut: 0, Colour: 1.0, Facial: 0, Manicure: 0, Massage: 0 } },
+        { name: 'Developer', stock: 12, min: 8, usagePerService: { Haircut: 0, Colour: 1.5, Facial: 0, Manicure: 0, Massage: 0 } },
+        { name: 'Facial Cream', stock: 7, min: 6, usagePerService: { Haircut: 0, Colour: 0, Facial: 1.0, Manicure: 0, Massage: 0 } },
+        { name: 'Nail Gel', stock: 11, min: 7, usagePerService: { Haircut: 0, Colour: 0, Facial: 0, Manicure: 1.2, Massage: 0 } }
+      ];
+
+      let bookings = [
+        { service: 'Colour', qty: 4 },
+        { service: 'Facial', qty: 2 },
+        { service: 'Manicure', qty: 3 },
+        { service: 'Haircut', qty: 5 }
+      ];
+
+      const bookedCountEl = document.getElementById('bookedCount');
+      const lowStockCountEl = document.getElementById('lowStockCount');
+      const demandValueEl = document.getElementById('demandValue');
+      const stockTableBody = document.getElementById('stockTableBody');
+      const insightBox = document.getElementById('insightBox');
+
+      function getStatus(stock, min) {
+        if (stock <= min * 0.7) return { label: 'Low', className: 'danger' };
+        if (stock <= min) return { label: 'Watch', className: 'warn' };
+        return { label: 'Healthy', className: 'good' };
+      }
+
+      function renderData() {
+        const totalBooked = bookings.reduce((sum, b) => sum + b.qty, 0);
+        bookedCountEl.textContent = totalBooked;
+
+        const lowCount = products.filter(p => p.stock <= p.min).length;
+        lowStockCountEl.textContent = lowCount;
+
+        const estimatedDemand = bookings.reduce((sum, booking) => {
+          return sum + products.reduce((productSum, product) => {
+            const usage = product.usagePerService[booking.service] || 0;
+            return productSum + (usage * booking.qty);
+          }, 0);
+        }, 0);
+        demandValueEl.textContent = estimatedDemand.toFixed(1);
+
+        stockTableBody.innerHTML = '';
+
+        products.forEach(product => {
+          const row = document.createElement('tr');
+          const estimated = bookings.reduce((sum, booking) => {
+            const usage = product.usagePerService[booking.service] || 0;
+            return sum + usage * booking.qty;
+          }, 0);
+
+          const status = getStatus(product.stock, product.min);
+
+          row.innerHTML = `
+            <td>${product.name}</td>
+            <td>${product.stock}</td>
+            <td>${product.min}</td>
+            <td>${estimated.toFixed(1)}</td>
+            <td><span class="status ${status.className}">${status.label}</span></td>
+          `;
+
+          stockTableBody.appendChild(row);
+        });
+
+        const firstLow = products
+          .filter(product => product.stock <= product.min)
+          .sort((a, b) => a.stock - b.stock)[0];
+
+        if (firstLow) {
+          insightBox.innerHTML = `AI suggestion: ${firstLow.name} is low and may need reordering soon. Based on current bookings, estimated demand is rising for ${firstLow.name.toLowerCase()}.`;
+        } else {
+          insightBox.innerHTML = 'AI suggestion: Stock levels look healthy for this week. Keep an eye on colour services, where demand is highest.';
+        }
+      }
+
+      document.getElementById('bookingForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const service = document.getElementById('serviceType').value;
+        const qty = parseInt(document.getElementById('serviceQty').value, 10) || 1;
+        const usageText = document.getElementById('usageInput').value;
+
+        bookings.push({
+          service,
+          qty,
+          note: usageText
+        });
+
+        renderData();
+        event.target.reset();
+        document.getElementById('serviceQty').value = 1;
+        document.getElementById('usageInput').value = 'Colour estimate: toner, developer';
+      });
+
+      renderData();
+    </script>
+  </body>
+</html>
